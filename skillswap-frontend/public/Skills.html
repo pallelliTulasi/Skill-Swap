@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Test Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+        min-height: 100vh;
+    }
+
+    .skills-page { padding: 20px; }
+
+    .page-title { font-size: 28px; color: #2c3e50; margin-bottom: 10px; }
+    .page-subtitle { color: #7f8c8d; margin-bottom: 20px; }
+
+    .search-container { max-width: 600px; margin-bottom: 30px; position: relative; }
+    .search-bar {
+        width: 100%; padding: 12px 20px 12px 45px;
+        border: 2px solid #ddd; border-radius: 25px; font-size: 16px;
+        transition: .3s;
+    }
+    .search-bar:focus { border-color: #3498db; box-shadow: 0 0 0 3px #3498db33; }
+    .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #7f8c8d; }
+
+    /* GRID */
+    .skills-grid {
+        display: grid; gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    /* Cards */
+    .skill-card {
+        background: #fff; border-radius: 10px; border: 1px solid #eee;
+        box-shadow: 0 5px 15px #0001; transition: .3s;
+    }
+    .skill-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px #0002; }
+
+    .skill-card-header {
+        padding: 20px; display: flex; gap: 15px; align-items: center;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    }
+
+    .skill-icon {
+        width: 50px; height: 50px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; color: #fff;
+    }
+
+    .skill-title { font-size: 20px; font-weight: 600; color: #2c3e50; }
+    .skill-level { font-size: 14px; color: #7f8c8d; margin-top: 5px; }
+
+    .skill-content { padding: 15px 20px; min-height: 120px; line-height: 1.6; color: #5d6d7e; border-bottom: 1px solid #eee; }
+
+    .skill-stats, .skill-actions { padding: 15px 20px; display: flex; justify-content: space-between; gap: 10px; }
+
+    .skill-btn {
+        flex: 1; padding: 10px 20px; border-radius: 6px; border: none;
+        font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        gap: 8px; transition: .3s;
+    }
+    .btn-primary { background: #3498db; color: #fff; }
+    .btn-primary:hover { background: #2980b9; }
+    .btn-primary:disabled { background: #95a5a6; }
+
+    /* Modal */
+    .test-modal {
+        display: none; position: fixed; inset: 0;
+        background: #0008; z-index: 1000; align-items: center; justify-content: center;
+    }
+    .modal-content {
+        background: #fff; width: 90%; max-width: 800px;
+        border-radius: 15px; overflow: hidden; animation: fade .3s;
+        box-shadow: 0 20px 50px #0004;
+    }
+    @keyframes fade { from {opacity: 0; transform: translateY(-50px);} to {opacity: 1;} }
+
+    .modal-header {
+        padding: 20px; display: flex; justify-content: space-between; align-items: center;
+        background: linear-gradient(90deg, #3498db, #2c3e50); color: #fff;
+    }
+    .close-modal { background: none; border: none; font-size: 28px; color: #fff; cursor: pointer; }
+
+    .modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+    .question { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+    .question-text { font-size: 17px; margin-bottom: 15px; font-weight: 500; color: #2c3e50; }
+
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option {
+        padding: 12px; border: 2px solid #ecf0f1; border-radius: 6px;
+        cursor: pointer; transition: .2s;
+    }
+    .option:hover { background: #f8f9fa; }
+    .option.selected { background: #ebf5fb; border-color: #3498db; }
+
+    .modal-footer {
+        padding: 15px 25px; background: #f8f9fa;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .modal-btn {
+        padding: 10px 25px; background: #3498db; border: none;
+        border-radius: 6px; color: #fff; font-weight: 600; cursor: pointer;
+    }
+    .modal-btn-secondary { background: #95a5a6; }
+    .modal-btn-secondary:hover { background: #7f8c8d; }
+
+    .score-circle { font-size: 70px; font-weight: 700; margin-bottom: 20px; }
+    .score-excellent { color: #27ae60; }
+    .score-good { color: #f39c12; }
+    .score-average { color: #e74c3c; }
+
+    .recommendation { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    .timer { padding: 5px 10px; border-radius: 20px; background: #2c3e50; color: #fff; font-size: 14px; }
+</style>
+</head>
+<body>
+    <!-- SKILLS PAGE CONTENT -->
+    <div class="skills-page">
+        <div class="skills-header">
+            <h1 class="page-title">Skills Test Platform</h1>
+            <p class="page-subtitle">Test your knowledge - 30 questions per test (10 Easy, 10 Medium, 10 Hard)</p>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-bar" id="skillSearch" placeholder="Search skills...">
+            </div>
+        </div>
+        
+        <div class="skills-grid" id="skillsGrid">
+            <!-- Skills will be loaded by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- TEST MODAL -->
+    <div class="test-modal" id="testModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Skill Test</h2>
+                <div class="timer" id="timer">Time: 60:00</div>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <div class="modal-body" id="modalBody">
+                <!-- Questions will be loaded here -->
+            </div>
+            
+            <div class="modal-footer">
+                <div class="progress-text" id="progressText">Question 1 of 30</div>
+                <div class="navigation-buttons">
+                    <button class="modal-btn modal-btn-secondary" id="prevQuestion" style="display: none;">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button class="modal-btn" id="nextQuestion">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="modal-btn" id="submitTest" style="display: none;">
+                        <i class="fas fa-paper-plane"></i> Submit Test
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// ===== ADD THIS AT THE VERY TOP OF YOUR SCRIPT =====
+// Get logged-in user from localStorage
+// ===== FIXED: Get logged-in user from localStorage =====
+let currentUser = {
+    id: 0,
+    name: "Guest",
+    email: "guest@example.com"
+};
+
+try {
+    // Read user from localStorage (set by your login page)
+    const userData = localStorage.getItem('user');
+    
+    if (userData) {
+        const parsed = JSON.parse(userData);
+        console.log('Found logged-in user:', parsed);
+        
+        // FIXED: Actually set currentUser with the real data!
+        currentUser = {
+            id: parsed.id || 0,
+            name: (parsed.firstName || parsed.name || '') + ' ' + (parsed.lastName || ''),
+            email: parsed.email || 'unknown@example.com'
+        };
+        
+        console.log(' Using real user:', currentUser.email);
+        
+       /* // Show a welcome banner with REAL email
+        document.body.insertAdjacentHTML('afterbegin', `
+            <div style="background: #27ae60; color: white; padding: 10px; text-align: center; font-weight: bold;">
+                Logged in as: ${currentUser.email}
+            </div>
+        `); */
+    } else {
+        console.log('No user logged in - using guest account');
+        document.body.insertAdjacentHTML('afterbegin', `
+            <div style="background: #f39c12; color: white; padding: 10px; text-align: center; font-weight: bold;">
+                 Not logged in! Please <a href="/login" style="color: white; text-decoration: underline;">Login</a>
+            </div>
+        `);
+    }
+} catch (e) {
+    console.error('Error loading user:', e);
+}
+// ===== END FIXED SECTION =====
+        const skillsData = [
+            {
+                id: 1,
+                name: "HTML",
+                description: "HyperText Markup Language for creating web pages. Learn semantic tags, forms, accessibility, and HTML5 features.",
+                icon: "fab fa-html5",
+                iconColor: "#e34f26",
+                level: "Intermediate",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 2,
+                name: "CSS",
+                description: "Cascading Style Sheets for web design. Master Flexbox, Grid, animations and responsive design techniques.",
+                icon: "fab fa-css3-alt",
+                iconColor: "#1572b6",
+                level: "Advanced",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 3,
+                name: "JavaScript",
+                description: "Programming language for interactive web pages. Learn ES6+, DOM manipulation, and modern frameworks.",
+                icon: "fab fa-js-square",
+                iconColor: "#f7df1e",
+                level: "Intermediate",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 4,
+                name: "Java Full Stack",
+                description: "Full stack development with Java including Spring Boot for backend and modern frontend frameworks.",
+                icon: "fab fa-java",
+                iconColor: "#007396",
+                level: "Advanced",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 5,
+                name: "JSP",
+                description: "JavaServer Pages technology that helps create dynamically generated web pages with Java integration.",
+                icon: "fas fa-file-code",
+                iconColor: "#4CAF50",
+                level: "Beginner",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 6,
+                name: "Data Structures",
+                description: "Specialized formats for organizing, processing, retrieving and storing data efficiently.",
+                icon: "fas fa-project-diagram",
+                iconColor: "#9b59b6",
+                level: "Advanced",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 7,
+                name: "React.js",
+                description: "JavaScript library for building user interfaces, particularly single-page applications.",
+                icon: "fab fa-react",
+                iconColor: "#61dafb",
+                level: "Intermediate",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 8,
+                name: "Node.js",
+                description: "JavaScript runtime built on Chrome's V8 engine for building server-side applications.",
+                icon: "fab fa-node-js",
+                iconColor: "#339933",
+                level: "Intermediate",
+                bestScore: 0,
+                testsTaken: 0
+            },
+            {
+                id: 9,
+                name: "Python",
+                description: "High-level programming language known for simplicity and versatility in development.",
+                icon: "fab fa-python",
+                iconColor: "#3776ab",
+                level: "Beginner",
+                bestScore: 0,
+                testsTaken: 0
+            }
+        ];
+
+        // Real test questions for each skill
+        const testQuestions = {
+            "HTML": generateHTMLQuestions(),
+            "CSS": generateCSSQuestions(),
+            "JavaScript": generateJSQuestions(),
+            "Java Full Stack": generateJavaQuestions(),
+            "JSP": generateJSPQuestions(),
+            "Data Structures": generateDSQuestions(),
+            "React.js": generateReactQuestions(),
+            "Node.js": generateNodeQuestions(),
+            "Python": generatePythonQuestions()
+        };
+
+        // Timer variables
+        let testTimer;
+        let timeLeft = 60 * 60; // 60 minutes in seconds
+
+        // Current test state
+        let currentTest = {
+            skill: '',
+            skillId: null,
+            questions: [],
+            answers: {},
+            currentQuestion: 0,
+            startTime: null,
+            endTime: null
+        };
+
+        // Initialize skills page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserScores();
+            renderSkills();
+            setupEventListeners();
+            
+            // Search functionality
+            document.getElementById('skillSearch').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                filterSkills(searchTerm);
+            });
+        });
+
+        // Load user scores from localStorage (temporary)
+        function loadUserScores() {
+            const savedData = localStorage.getItem(`skillsScores_user_${currentUser.id}`);
+            if (savedData) {
+                const userScores = JSON.parse(savedData);
+                userScores.forEach(score => {
+                    const skill = skillsData.find(s => s.id === score.skillId);
+                    if (skill) {
+                        skill.bestScore = score.bestScore || 0;
+                        skill.testsTaken = score.testsTaken || 0;
+                    }
+                });
+            }
+        }
+
+        // Save user scores to localStorage
+        function saveUserScore(skillId, score) {
+            let userScores = JSON.parse(localStorage.getItem(`skillsScores_user_${currentUser.id}`)) || [];
+            
+            const existingIndex = userScores.findIndex(s => s.skillId === skillId);
+            
+            if (existingIndex !== -1) {
+                userScores[existingIndex].testsTaken++;
+                if (score > userScores[existingIndex].bestScore) {
+                    userScores[existingIndex].bestScore = score;
+                }
+                userScores[existingIndex].lastScore = score;
+                userScores[existingIndex].lastTestDate = new Date().toISOString();
+            } else {
+                userScores.push({
+                    skillId: skillId,
+                    skillName: skillsData.find(s => s.id === skillId).name,
+                    bestScore: score,
+                    lastScore: score,
+                    testsTaken: 1,
+                    lastTestDate: new Date().toISOString()
+                });
+            }
+            
+            localStorage.setItem(`skillsScores_user_${currentUser.id}`, JSON.stringify(userScores));
+            
+            // Update skills data
+            const skillIndex = skillsData.findIndex(s => s.id === skillId);
+            if (skillIndex !== -1) {
+                skillsData[skillIndex].testsTaken++;
+                if (score > skillsData[skillIndex].bestScore) {
+                    skillsData[skillIndex].bestScore = score;
+                }
+            }
+        }
+
+        // SIMULATE SAVING TO DATABASE
+        // Replace the existing saveTestResultToDatabase function with this
+// REPLACE your existing saveTestResultToDatabase function with this
+async function saveTestResultToDatabase(testResult) {
+    try {
+        console.log('Saving for user:', testResult.userEmail); // Debug
+        
+        const response = await fetch('http://localhost:8081/api/explore/posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(testResult)
+        });
+        
+        if (response.ok) {
+            const savedData = await response.json();
+            console.log(' Saved to database:', savedData);
+            return true;
+        } else {
+            console.error('Failed to save:', response.status);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        return false;
+    }
+}
+        // Render skills grid
+        function renderSkills() {
+            const grid = document.getElementById('skillsGrid');
+            grid.innerHTML = '';
+            
+            skillsData.forEach(skill => {
+                const skillCard = document.createElement('div');
+                skillCard.className = 'skill-card';
+                skillCard.innerHTML = `
+                    <div class="skill-card-header">
+                        <div class="skill-icon" style="background: ${skill.iconColor}">
+                            <i class="${skill.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="skill-title">${skill.name}</div>
+                            <div class="skill-level">${skill.level} Level</div>
+                        </div>
+                    </div>
+                    <div class="skill-content">
+                        <p>${skill.description}</p>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-score">
+                            <div class="score-value">${skill.bestScore > 0 ? skill.bestScore + '%' : '--'}</div>
+                            <div class="score-label">Best Score</div>
+                        </div>
+                        <div class="skill-score">
+                            <div class="score-value">${skill.testsTaken}</div>
+                            <div class="score-label">Tests Taken</div>
+                            <div class="test-count">30 questions • 60 min</div>
+                        </div>
+                    </div>
+                    <div class="skill-actions">
+                        <button class="skill-btn btn-primary take-test" data-skill="${skill.name}" data-id="${skill.id}">
+                            <i class="fas fa-pencil-alt"></i> Take Test
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(skillCard);
+            });
+            
+            // Add event listeners
+            document.querySelectorAll('.take-test').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const skillName = this.getAttribute('data-skill');
+                    const skillId = parseInt(this.getAttribute('data-id'));
+                    startTest(skillName, skillId);
+                });
+            });
+        }
+
+        // Filter skills based on search
+        function filterSkills(searchTerm) {
+            const cards = document.querySelectorAll('.skill-card');
+            cards.forEach(card => {
+                const title = card.querySelector('.skill-title').textContent.toLowerCase();
+                const desc = card.querySelector('.skill-content').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Close modal button
+            document.getElementById('closeModal').addEventListener('click', function() {
+                if (confirm("Are you sure you want to quit the test? Your progress will be lost.")) {
+                    clearInterval(testTimer);
+                    document.getElementById('testModal').style.display = 'none';
+                }
+            });
+            
+            // Close modal on outside click
+            window.addEventListener('click', function(e) {
+                const modal = document.getElementById('testModal');
+                if (e.target === modal) {
+                    if (confirm("Are you sure you want to quit the test? Your progress will be lost.")) {
+                        clearInterval(testTimer);
+                        modal.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Navigation buttons
+            document.getElementById('nextQuestion').addEventListener('click', nextQuestion);
+            document.getElementById('prevQuestion').addEventListener('click', prevQuestion);
+            document.getElementById('submitTest').addEventListener('click', submitTest);
+        }
+
+        // Start test timer
+        function startTimer() {
+            clearInterval(testTimer);
+            timeLeft = 60 * 60; // 60 minutes
+            
+            testTimer = setInterval(function() {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                document.getElementById('timer').textContent = 
+                    `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(testTimer);
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        // Start test for a skill
+        function startTest(skillName, skillId) {
+            currentTest.skill = skillName;
+            currentTest.skillId = skillId;
+            currentTest.questions = testQuestions[skillName];
+            currentTest.answers = {};
+            currentTest.currentQuestion = 0;
+            currentTest.startTime = new Date().toISOString();
+            
+            document.getElementById('modalTitle').textContent = `${skillName} Test`;
+            showQuestion(0);
+            document.getElementById('testModal').style.display = 'flex';
+            
+            // Start timer
+            startTimer();
+        }
+
+        // Show question in modal
+        function showQuestion(index) {
+            const question = currentTest.questions[index];
+            const modalBody = document.getElementById('modalBody');
+            const progressText = document.getElementById('progressText');
+            const prevBtn = document.getElementById('prevQuestion');
+            const nextBtn = document.getElementById('nextQuestion');
+            const submitBtn = document.getElementById('submitTest');
+            
+            let optionsHtml = '';
+            question.options.forEach((option, optIndex) => {
+                const isSelected = currentTest.answers[question.id] === optIndex;
+                optionsHtml += `
+                    <div class="option ${isSelected ? 'selected' : ''}" data-option="${optIndex}">
+                        ${String.fromCharCode(65 + optIndex)}. ${option}
+                    </div>
+                `;
+            });
+            
+            modalBody.innerHTML = `
+                <div class="question">
+                    <div class="question-difficulty difficulty-${question.difficulty}">
+                        ${question.difficulty.toUpperCase()} LEVEL
+                    </div>
+                    <div class="question-text">${question.text}</div>
+                    <div class="options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            progressText.textContent = `Question ${index + 1} of 30`;
+            
+            // Update navigation buttons
+            prevBtn.style.display = index > 0 ? 'block' : 'none';
+            
+            if (index === currentTest.questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+            
+            // Add click events to options
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const selectedOption = parseInt(this.getAttribute('data-option'));
+                    currentTest.answers[question.id] = selectedOption;
+                    
+                    // Update UI
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                });
+            });
+            
+            currentTest.currentQuestion = index;
+        }
+
+        // Next question
+        function nextQuestion() {
+            if (currentTest.currentQuestion < currentTest.questions.length - 1) {
+                currentTest.currentQuestion++;
+                showQuestion(currentTest.currentQuestion);
+            }
+        }
+
+        // Previous question
+        function prevQuestion() {
+            if (currentTest.currentQuestion > 0) {
+                currentTest.currentQuestion--;
+                showQuestion(currentTest.currentQuestion);
+            }
+        }
+
+        // Submit test and show results
+       // Submit test and show results
+function submitTest() {
+    clearInterval(testTimer);
+    
+    // Calculate score - DEFINE variables FIRST!
+    let correct = 0;
+    let easyCorrect = 0;
+    let mediumCorrect = 0;
+    let hardCorrect = 0;
+    
+    // Loop through questions to calculate scores
+    currentTest.questions.forEach(q => {
+        if (currentTest.answers[q.id] === q.correct) {
+            correct++;
+            if (q.difficulty === 'easy') easyCorrect++;
+            if (q.difficulty === 'medium') mediumCorrect++;
+            if (q.difficulty === 'hard') hardCorrect++;
+        }
+    });
+    
+    const score = Math.round((correct / currentTest.questions.length) * 100);
+    currentTest.endTime = new Date().toISOString();
+    
+    // Save user score to localStorage
+    saveUserScore(currentTest.skillId, score);
+    
+    // Create test result object
+    const testResult = {
+        userId: currentUser.id,
+        userName: currentUser.name.trim() || "User",
+        userEmail: currentUser.email,
+        skillId: currentTest.skillId,
+        skillName: currentTest.skill,
+        score: score,
+        totalQuestions: 30,
+        correctAnswers: correct,
+        easyCorrect: easyCorrect,
+        mediumCorrect: mediumCorrect,
+        hardCorrect: hardCorrect,
+        startTime: currentTest.startTime,
+        endTime: currentTest.endTime,
+        testDate: new Date().toISOString(),
+        answers: currentTest.answers
+    };
+    
+    // ONLY SAVE TO DATABASE IF SCORE >= 80%
+    if (score >= 80) {
+        console.log(' Score >=80%, saving to database with user:', currentUser.email);
+        saveTestResultToDatabase(testResult);
+        
+        // Add message about saving to explore page
+        var exploreMessage = '<p style="color: #27ae60; font-weight: bold;"> Your score will appear in Explore page!</p>';
+    } else {
+        console.log(' Score below 80%, not saving to database');
+        var exploreMessage = '<p style="color: #7f8c8d;">Score 80%+ to get featured in Explore page</p>';
+    }
+    
+    // Show results with the correct variables
+    showResults(score, correct, easyCorrect, mediumCorrect, hardCorrect, testResult, exploreMessage);
+}
+
+// Update showResults to accept exploreMessage
+function showResults(score, correct, easyCorrect, mediumCorrect, hardCorrect, testResult, exploreMessage) {
+    const modalBody = document.getElementById('modalBody');
+    const progressText = document.getElementById('progressText');
+    const nextBtn = document.getElementById('nextQuestion');
+    const submitBtn = document.getElementById('submitTest');
+    const prevBtn = document.getElementById('prevQuestion');
+    
+    nextBtn.style.display = 'none';
+    submitBtn.style.display = 'none';
+    prevBtn.style.display = 'none';
+    
+    let scoreClass = 'score-average';
+    if (score >= 80) scoreClass = 'score-excellent';
+    else if (score >= 60) scoreClass = 'score-good';
+    
+    modalBody.innerHTML = `
+        <div class="results-container">
+            <div class="score-circle ${scoreClass}">${score}%</div>
+            <h3>Test Completed Successfully!</h3>
+            <p>You answered ${correct} out of 30 questions correctly.</p>
+            
+            <div style="margin: 20px 0; background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <h4>Detailed Performance:</h4>
+                <p><strong>Easy Questions:</strong> ${easyCorrect}/10 correct</p>
+                <p><strong>Medium Questions:</strong> ${mediumCorrect}/10 correct</p>
+                <p><strong>Hard Questions:</strong> ${hardCorrect}/10 correct</p>
+                ${exploreMessage || '<p style="margin-top: 10px; font-size: 12px; color: #7f8c8d;">Test completed</p>'}
+            </div>
+            
+            <div class="recommendation">
+                <strong>Analysis:</strong><br>
+                ${score >= 90 ? 
+                    ' Outstanding! Excellent understanding across all difficulty levels.' :
+                 score >= 75 ?
+                    ' Very Good! Strong performance with room for improvement in advanced topics.' :
+                 score >= 60 ?
+                    ' Good Effort! Focus more on medium and hard difficulty questions.' :
+                 score >= 40 ?
+                    ' Needs Practice! Review fundamentals and attempt more tests.' :
+                    'Start from Basics! Focus on understanding core concepts first.'}
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+                <button class="modal-btn retake-btn" id="retakeTest">
+                    <i class="fas fa-redo"></i> Retake Test
+                </button>
+                <button class="modal-btn" id="closeResults">
+                    <i class="fas fa-check"></i> Done
+                </button>
+            </div>
+        </div>
+    `;
+    
+    progressText.textContent = 'Test Results';
+    
+    // Add event listeners for result buttons
+    document.getElementById('retakeTest').addEventListener('click', function() {
+        startTest(currentTest.skill, currentTest.skillId);
+    });
+    
+    document.getElementById('closeResults').addEventListener('click', function() {
+        document.getElementById('testModal').style.display = 'none';
+        renderSkills(); // Refresh the skills grid with updated scores
+    });
+}
+        // QUESTION GENERATORS FOR EACH SKILL
+        function generateHTMLQuestions() {
+            return [
+                // Easy Questions (1-10)
+                {id:1, text:"What does HTML stand for?", options:["Hyper Text Markup Language","High Tech Modern Language","Hyper Transfer Markup Language","Home Tool Markup Language"], correct:0, difficulty:"easy"},
+                {id:2, text:"Which tag creates a hyperlink?", options:["<link>","<a>","<href>","<hyperlink>"], correct:1, difficulty:"easy"},
+                {id:3, text:"What is the correct HTML for adding a background color?", options:["<body bg='yellow'>","<body style='background-color:yellow;'>","<background>yellow</background>","<body color='yellow'>"], correct:1, difficulty:"easy"},
+                {id:4, text:"Which HTML element defines the title of a document?", options:["<title>","<head>","<meta>","<header>"], correct:0, difficulty:"easy"},
+                {id:5, text:"Choose the correct HTML element for the largest heading:", options:["<h6>","<heading>","<h1>","<head>"], correct:2, difficulty:"easy"},
+                {id:6, text:"What is the correct HTML element for inserting a line break?", options:["<break>","<lb>","<br>","<newline>"], correct:2, difficulty:"easy"},
+                {id:7, text:"Which HTML attribute specifies an alternate text for an image?", options:["src","alt","title","href"], correct:1, difficulty:"easy"},
+                {id:8, text:"In HTML, which attribute is used to specify that an input field must be filled out?", options:["placeholder","required","validate","important"], correct:1, difficulty:"easy"},
+                {id:9, text:"Which HTML element is used to specify a footer for a document?", options:["<footer>","<bottom>","<section>","<div>"], correct:0, difficulty:"easy"},
+                {id:10, text:"What is the correct HTML for creating a checkbox?", options:["<input type='check'>","<checkbox>","<input type='checkbox'>","<check>"], correct:2, difficulty:"easy"},
+                
+                // Medium Questions (11-20)
+                {id:11, text:"What does the <canvas> element in HTML5 do?", options:["Draw graphics via JavaScript","Play audio files","Display video content","Create form elements"], correct:0, difficulty:"medium"},
+                {id:12, text:"Which HTML5 element is used for independent, self-contained content?", options:["<section>","<article>","<aside>","<div>"], correct:1, difficulty:"medium"},
+                {id:13, text:"What is the purpose of the HTML5 <details> element?", options:["Create a dialog box","Show/hide additional information","Define document details","Create tooltips"], correct:1, difficulty:"medium"},
+                {id:14, text:"Which attribute is used for drag and drop in HTML5?", options:["draggable","drag","move","transport"], correct:0, difficulty:"medium"},
+                {id:15, text:"What does the <figure> element represent?", options:["Self-contained content","Image with caption","Form figure","Chart container"], correct:1, difficulty:"medium"},
+                {id:16, text:"Which HTML5 API allows web applications to store data locally?", options:["Web Storage API","Local Data API","Browser Storage API","Client Storage API"], correct:0, difficulty:"medium"},
+                {id:17, text:"What is semantic HTML?", options:["HTML with proper indentation","HTML that uses meaningful tags","HTML with comments","HTML with CSS"], correct:1, difficulty:"medium"},
+                {id:18, text:"Which HTML5 element represents a group of introductory content?", options:["<intro>","<header>","<start>","<begin>"], correct:1, difficulty:"medium"},
+                {id:19, text:"What is the difference between localStorage and sessionStorage?", options:["localStorage has no expiration, sessionStorage clears on tab close","sessionStorage is larger","localStorage is faster","sessionStorage requires login"], correct:0, difficulty:"medium"},
+                {id:20, text:"Which HTML element is used for progress tracking?", options:["<meter>","<progress>","<track>","<load>"], correct:1, difficulty:"medium"},
+                
+                // Hard Questions (21-30)
+                {id:21, text:"What is the purpose of the HTML5 manifest attribute?", options:["Define cache manifest","Load external scripts","Declare document type","Specify character encoding"], correct:0, difficulty:"hard"},
+                {id:22, text:"Which HTML5 feature allows communication between documents from different domains?", options:["postMessage API","Cross-Domain API","Domain Communication API","Message Passing API"], correct:0, difficulty:"hard"},
+                {id:23, text:"What is the correct way to implement microdata in HTML5?", options:["Using itemscope and itemprop attributes","Using data-* attributes","Using custom elements","Using JSON-LD only"], correct:0, difficulty:"hard"},
+                {id:24, text:"Which HTML5 API provides access to device hardware like camera?", options:["WebRTC API","getUserMedia API","Device API","Hardware Access API"], correct:1, difficulty:"hard"},
+                {id:25, text:"What is the purpose of the ping attribute in HTML5 anchor tags?", options:["Track link clicks","Improve SEO","Increase security","Speed up loading"], correct:0, difficulty:"hard"},
+                {id:26, text:"Which HTML5 feature allows real-time communication between browser and server?", options:["WebSockets","AJAX","Server-Sent Events","Long Polling"], correct:0, difficulty:"hard"},
+                {id:27, text:"What is the difference between <strong> and <b> tags?", options:["<strong> is semantic, <b> is visual","<b> is newer","<strong> is deprecated","No difference"], correct:0, difficulty:"hard"},
+                {id:28, text:"Which HTML5 API allows access to the file system?", options:["File API","Storage API","FileSystem API","Local File API"], correct:2, difficulty:"hard"},
+                {id:29, text:"What is the purpose of the sandbox attribute in iframes?", options:["Increase security","Improve performance","Add styling","Enable JavaScript"], correct:0, difficulty:"hard"},
+                {id:30, text:"Which HTML5 feature allows websites to work offline?", options:["Service Workers","App Cache","Local Storage","Session Storage"], correct:0, difficulty:"hard"}
+            ];
+        }
+
+        // Generate other skill questions (simplified for brevity)
+       function generateCSSQuestions() {
+    return [
+        // Easy (1–10)
+        {id:1, text:"What does CSS stand for?", options:["Cascading Style Sheets","Creative Style System","Colorful Style Script","Computer Style Syntax"], correct:0, difficulty:"easy"},
+        {id:2, text:"Which property changes text color?", options:["color","font-color","text-style","foreground"], correct:0, difficulty:"easy"},
+        {id:3, text:"Which property controls text size?", options:["font-style","text-size","font-size","size"], correct:2, difficulty:"easy"},
+        {id:4, text:"Which CSS selector targets an element by id?", options:[".class","#id","element","*"], correct:1, difficulty:"easy"},
+        {id:5, text:"How do you apply a class in CSS?", options:["#classname",".classname","classname","&classname"], correct:1, difficulty:"easy"},
+        {id:6, text:"Which property makes text bold?", options:["font-weight","bold","text-type","font-bold"], correct:0, difficulty:"easy"},
+        {id:7, text:"Which property adds space INSIDE an element?", options:["margin","padding","border","gap"], correct:1, difficulty:"easy"},
+        {id:8, text:"Which display property hides an element but keeps space?", options:["visibility:hidden","display:none","opacity:0","hide:true"], correct:0, difficulty:"easy"},
+        {id:9, text:"Which CSS unit is relative to the root font size?", options:["em","px","rem","%"], correct:2, difficulty:"easy"},
+        {id:10, text:"Which property is used to set background color?", options:["background-color","bgcolor","color-bg","background-style"], correct:0, difficulty:"easy"},
+
+        // Medium (11–20)
+        {id:11, text:"What does flexbox mainly control?", options:["2D layouts","1D layouts","Animations","Typography"], correct:1, difficulty:"medium"},
+        {id:12, text:"Which property in flexbox defines the direction?", options:["flex-flow","flex-dir","flex-direction","direction"], correct:2, difficulty:"medium"},
+        {id:13, text:"Which property positions an element relative to its parent?", options:["relative","absolute","fixed","static"], correct:1, difficulty:"medium"},
+        {id:14, text:"Which CSS property controls spacing BETWEEN flex items?", options:["gap","margin","padding","space"], correct:0, difficulty:"medium"},
+        {id:15, text:"Which property makes a grid layout?", options:["display:grid","grid-layout:true","grid-display","enable-grid"], correct:0, difficulty:"medium"},
+        {id:16, text:"Which pseudo-class is used for hovering?", options:[":hover",":active",":focus",":move"], correct:0, difficulty:"medium"},
+        {id:17, text:"Which property controls z-order (stacking)?", options:["z-index","stack-level","layer","priority"], correct:0, difficulty:"medium"},
+        {id:18, text:"Which CSS feature allows variable declaration?", options:["CSS variables","Custom selectors","CSS modules","Style inheritance"], correct:0, difficulty:"medium"},
+        {id:19, text:"What is the default display value for <div>?", options:["inline","block","flex","inline-block"], correct:1, difficulty:"medium"},
+        {id:20, text:"Which property creates a shadow behind a box?", options:["box-shadow","shadow-box","border-shadow","bg-shadow"], correct:0, difficulty:"medium"},
+
+        // Hard (21–30)
+        {id:21, text:"Which function is used to create blur?", options:["blur()","filter()","opacity()","blend()"], correct:0, difficulty:"hard"},
+        {id:22, text:"What is specificity order highest → lowest?", options:["Inline > ID > Class > Element","ID > Inline > Class > Element","Class > ID > Inline > Element","ID > Class > Inline > Element"], correct:0, difficulty:"hard"},
+        {id:23, text:"Which property controls smooth animations?", options:["transition","transform","animation-delay","@keyframes"], correct:0, difficulty:"hard"},
+        {id:24, text:"Which value positions background image to cover full screen?", options:["cover","contain","fill","stretch"], correct:0, difficulty:"hard"},
+        {id:25, text:"CSS Grid: which property defines columns?", options:["grid-template-columns","grid-columns","columns","grid-col"], correct:0, difficulty:"hard"},
+        {id:26, text:"Which CSS function is used in transform?", options:["rotate()","animate()","shadow()","fade()"], correct:0, difficulty:"hard"},
+        {id:27, text:"Which property enables custom fonts?", options:["@font-face","font-custom","font-import","font-url"], correct:0, difficulty:"hard"},
+        {id:28, text:"Which feature improves performance using pre-calculated values?", options:["will-change","pre-render","pre-compute","dom-hint"], correct:0, difficulty:"hard"},
+        {id:29, text:"Which unit is relative to viewport height?", options:["vh","vw","rem","%"], correct:0, difficulty:"hard"},
+        {id:30, text:"Which property clips overflowing content?", options:["overflow","clip","cut","trim"], correct:0, difficulty:"hard"}
+    ];
+}
+
+
+       function generateJSQuestions() {
+    return [
+        // EASY (1–10)
+        {id:1, text:"What keyword is used to declare a variable in JavaScript?", options:["var","int","declare","let var"], correct:0, difficulty:"easy"},
+        {id:2, text:"Which symbol is used for single-line comments in JS?", options:["<!-- -->","//","/* */","**"], correct:1, difficulty:"easy"},
+        {id:3, text:"Which method prints output to the browser console?", options:["print()","console.print()","console.log()","log.console()"], correct:2, difficulty:"easy"},
+        {id:4, text:"How do you write an array in JavaScript?", options:["(1,2,3)","{1,2,3}","[1,2,3]","<1,2,3>"], correct:2, difficulty:"easy"},
+        {id:5, text:"What is the correct way to create a function?", options:["function = myFunction()","function myFunction()","create myFunction()","func myFunction()"], correct:1, difficulty:"easy"},
+        {id:6, text:"Which operator checks BOTH value and type?", options:["==","=","===", "!=="], correct:2, difficulty:"easy"},
+        {id:7, text:"JavaScript is a ______ language.", options:["Compiled","Markup","Scripting","Styling"], correct:2, difficulty:"easy"},
+        {id:8, text:"Which data type is NOT primitive?", options:["String","Boolean","Object","Number"], correct:2, difficulty:"easy"},
+        {id:9, text:"Which method adds an element to the end of an array?", options:["push()","add()","append()","insert()"], correct:0, difficulty:"easy"},
+        {id:10, text:"What does DOM stand for?", options:["Document Object Model","Data Object Manager","Document Order Module","Direct Object Mapping"], correct:0, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        {id:11, text:"Which keyword refers to the current object?", options:["self","this","object","me"], correct:1, difficulty:"medium"},
+        {id:12, text:"How do you convert a string to integer in JavaScript?", options:["toInt()","parseInteger()","parseInt()","int()"], correct:2, difficulty:"medium"},
+        {id:13, text:"Which function executes code after a delay?", options:["setInterval()","delay()","timer()","setTimeout()"], correct:3, difficulty:"medium"},
+        {id:14, text:"Which array method removes the first element?", options:["pop()","shift()","remove()","spliceFirst()"], correct:1, difficulty:"medium"},
+        {id:15, text:"Which loop is used for iterating over arrays?", options:["for-in","for-of","for-each-in","repeat"], correct:1, difficulty:"medium"},
+        {id:16, text:"Which method converts JSON string to object?", options:["JSON.parse()","JSON.convert()","JSON.stringify()","JSON.objectify()"], correct:0, difficulty:"medium"},
+        {id:17, text:"Which method is used to select an element by ID?", options:["querySelectorAll()","getElementByName()","getElementById()","selectId()"], correct:2, difficulty:"medium"},
+        {id:18, text:"What will typeof null return?", options:["null","object","undefined","none"], correct:1, difficulty:"medium"},
+        {id:19, text:"Which method returns a new array without modifying the original?", options:["splice()","slice()","modify()","map()"], correct:1, difficulty:"medium"},
+        {id:20, text:"What does 'use strict' do?", options:["Makes JS faster","Allows older syntax","Enforces stricter rules","Enables debugging"], correct:2, difficulty:"medium"},
+
+        // HARD (21–30)
+        {id:21, text:"What is a closure in JavaScript?", options:["Function inside a loop","Function with private scope","Function returning another function","Function with global scope"], correct:2, difficulty:"hard"},
+        {id:22, text:"Which feature handles asynchronous operations?", options:["Callbacks","Promises","Events","All of these"], correct:3, difficulty:"hard"},
+        {id:23, text:"What is hoisting?", options:["Moving code up","Automatic variable declarations","Reordering functions","JS optimizing code"], correct:1, difficulty:"hard"},
+        {id:24, text:"Which method is used to handle errors in promises?", options:["fail()","catch()","error()","reject()"], correct:1, difficulty:"hard"},
+        {id:25, text:"What will this print: console.log(0 == '0') ?", options:["false","true","undefined","error"], correct:1, difficulty:"hard"},
+        {id:26, text:"Which keyword is used inside async functions to wait?", options:["wait","pause","hold","await"], correct:3, difficulty:"hard"},
+        {id:27, text:"What is event bubbling?", options:["Events move inward","Events jump to root","Events propagate from child to parent","Events loop forever"], correct:2, difficulty:"hard"},
+        {id:28, text:"Which object represents the browser window?", options:["document","navigator","window","screen"], correct:2, difficulty:"hard"},
+        {id:29, text:"Which symbol is used for optional chaining?", options:["?","?.","??","->"], correct:1, difficulty:"hard"},
+        {id:30, text:"Which method deeply copies an object?", options:["Object.clone()","JSON.parse(JSON.stringify())","copy.deep()","object.copy()"], correct:1, difficulty:"hard"}
+    ];
+}
+function generateJavaQuestions() {
+    return [
+        // EASY (1–10)
+        { id:1, text:"What is JVM?", options:["Java Virtual Machine","Java Visual Model","Joint Virtual Module","Java Version Manager"], correct:0, difficulty:"easy"},
+        { id:2, text:"Which keyword is used to inherit a class?", options:["super","this","extends","implements"], correct:2, difficulty:"easy"},
+        { id:3, text:"Which is not a primitive type?", options:["int","float","String","char"], correct:2, difficulty:"easy"},
+        { id:4, text:"What does JIT stand for?", options:["Just In Time","Java Internal Tool","Java Instance Type","Joint Interface Type"], correct:0, difficulty:"easy"},
+        { id:5, text:"Which OOP concept hides internal details?", options:["Inheritance","Abstraction","Polymorphism","Encapsulation"], correct:1, difficulty:"easy"},
+        { id:6, text:"Which collection does NOT allow duplicates?", options:["ArrayList","HashSet","LinkedList","Vector"], correct:1, difficulty:"easy"},
+        { id:7, text:"Default value of int in Java?", options:["0","null","undefined","1"], correct:0, difficulty:"easy"},
+        { id:8, text:"What is method overloading?", options:["Same method name, diff parameters","Same parameters, diff class","Different return type only","Same name & same signature"], correct:0, difficulty:"easy"},
+        { id:9, text:"Which loop runs at least once?", options:["for","while","do-while","foreach"], correct:2, difficulty:"easy"},
+        { id:10, text:"Which package contains ArrayList?", options:["java.io","java.util","java.lang","java.collection"], correct:1, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        { id:11, text:"Which interface does HashMap implement?", options:["Map","List","Set","Queue"], correct:0, difficulty:"medium"},
+        { id:12, text:"Which keyword prevents inheritance?", options:["stop","final","static","sealed"], correct:1, difficulty:"medium"},
+        { id:13, text:"Which is checked exception?", options:["NullPointerException","IOException","ArithmeticException","ArrayIndexOutOfBounds"], correct:1, difficulty:"medium"},
+        { id:14, text:"What is the parent class of all classes?", options:["Object","System","Runtime","Main"], correct:0, difficulty:"medium"},
+        { id:15, text:"Which collection maintains insertion order?", options:["HashSet","TreeSet","LinkedHashSet","PriorityQueue"], correct:2, difficulty:"medium"},
+        { id:16, text:"What is the size of int in Java?", options:["2 bytes","4 bytes","8 bytes","Depends on OS"], correct:1, difficulty:"medium"},
+        { id:17, text:"Which operator is used for short-circuit AND?", options:["&","&&","|","||"], correct:1, difficulty:"medium"},
+        { id:18, text:"Which class is immutable?", options:["String","StringBuilder","StringBuffer","Character array"], correct:0, difficulty:"medium"},
+        { id:19, text:"What is multithreading?", options:["Multiple classes","Multiple methods","Multiple tasks executed simultaneously","Multiple objects"], correct:2, difficulty:"medium"},
+        { id:20, text:"Which keyword is used to handle exceptions?", options:["throw","throws","try-catch","final"], correct:2, difficulty:"medium"},
+
+        // HARD (21–30)
+        { id:21, text:"Java uses which memory model?", options:["Stack-Heap model","Queue model","Segment Model","Tree Memory"], correct:0, difficulty:"hard"},
+        { id:22, text:"What is the time complexity of HashMap get()?", options:["O(n)","O(1) average","O(log n)","O(n²)"], correct:1, difficulty:"hard"},
+        { id:23, text:"What does synchronized do?", options:["Locks method/block","Creates thread","Stops thread","Increases performance"], correct:0, difficulty:"hard"},
+        { id:24, text:"Which garbage collector is default in Java 11?", options:["G1","CMS","Parallel","Serial"], correct:0, difficulty:"hard"},
+        { id:25, text:"What is reflection in Java?", options:["Runtime class inspection","Compile time checking","Memory cleanup","Parallel execution"], correct:0, difficulty:"hard"},
+        { id:26, text:"What is volatile keyword for?", options:["Prevent caching","Increase speed","Thread pooling","Stop inheritance"], correct:0, difficulty:"hard"},
+        { id:27, text:"What design pattern is Singleton?", options:["Creational","Structural","Behavioral","Reactive"], correct:0, difficulty:"hard"},
+        { id:28, text:"Which collection is fail-fast?", options:["CopyOnWriteArrayList","ConcurrentHashMap","ArrayList iterator","LinkedBlockingQueue"], correct:2, difficulty:"hard"},
+        { id:29, text:"Which stream is used for object serialization?", options:["ObjectInputStream","FileWriter","BufferedReader","Scanner"], correct:0, difficulty:"hard"},
+        { id:30, text:"What is the purpose of ClassLoader?", options:["Load classes at runtime","Execute main method","Manage threads","Handle memory"], correct:0, difficulty:"hard"}
+    ];
+}
+function generateJSPQuestions() {
+    return [
+        // EASY (1–10)
+        { id:1, text:"What does JSP stand for?", options:["Java Server Pages","Java Script Pages","Java Servlet Page","Java Static Page"], correct:0, difficulty:"easy"},
+        { id:2, text:"JSP is executed on the ______ side.", options:["Client","Server","Browser","Network"], correct:1, difficulty:"easy"},
+        { id:3, text:"Which tag is used for writing Java code in JSP?", options:["<% %>","<jsp>","<java>","<script>"], correct:0, difficulty:"easy"},
+        { id:4, text:"Which is a JSP directive?", options:["<%@ page %>","<% variable %>","<jsp:include>","<jsp:useBean>"], correct:0, difficulty:"easy"},
+        { id:5, text:"Which implicit object refers to the user request?", options:["response","request","session","application"], correct:1, difficulty:"easy"},
+        { id:6, text:"JSP files are converted into ______ by server.", options:["Servlets","HTML","JavaScript","XML"], correct:0, difficulty:"easy"},
+        { id:7, text:"Which scope lasts until the browser is closed?", options:["request","page","session","application"], correct:2, difficulty:"easy"},
+        { id:8, text:"Which tag is used to include another file?", options:["<jsp:include>","<include>","<jsp:file>","<jsp:copy>"], correct:0, difficulty:"easy"},
+        { id:9, text:"Which is NOT an implicit object?", options:["page","session","config","String"], correct:3, difficulty:"easy"},
+        { id:10, text:"Which directive is used for importing packages?", options:["<%@ import %>","<%@ include %>","<%@ page import %>","<page>"], correct:2, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        { id:11, text:"Which action tag creates a JavaBean object?", options:["<jsp:bean>","<jsp:new>","<jsp:useBean>","<jsp:setBean>"], correct:2, difficulty:"medium"},
+        { id:12, text:"Which object is used to forward request?", options:["config","response","request","RequestDispatcher"], correct:3, difficulty:"medium"},
+        { id:13, text:"Expression language syntax begins with:", options:["${ }","<%=","%{ }","&{ }"], correct:0, difficulty:"medium"},
+        { id:14, text:"Which method destroys a session?", options:["session.delete()","session.kill()","session.invalidate()","session.remove()"], correct:2, difficulty:"medium"},
+        { id:15, text:"Which directive defines global settings?", options:["taglib","page","include","bean"], correct:1, difficulty:"medium"},
+        { id:16, text:"Where are JSP init parameters defined?", options:["web.xml","server.xml","pom.xml","config.properties"], correct:0, difficulty:"medium"},
+        { id:17, text:"JSP comments that are not sent to client:", options:["<!-- -->","// comment","<%-- --%>","/** */"], correct:2, difficulty:"medium"},
+        { id:18, text:"Which action transfers control to another JSP?", options:["<jsp:change>","<jsp:redirect>","<jsp:include>","<jsp:forward>"], correct:3, difficulty:"medium"},
+        { id:19, text:"Which implicit object is used to get ServletContext?", options:["application","context","config","server"], correct:0, difficulty:"medium"},
+        { id:20, text:"Which EL operator checks equality?", options:["eq","=","equals","=="], correct:0, difficulty:"medium"},
+
+        // HARD (21–30)
+        { id:21, text:"JSP lifecycle: which runs first?", options:["_jspService()","jspInit()","jspDestroy()","constructor"], correct:1, difficulty:"hard"},
+        { id:22, text:"Which tag declares variables in JSP?", options:["Declaration tag","Scriptlet","Expression","Attribute"], correct:0, difficulty:"hard"},
+        { id:23, text:"What is TLD in JSP?", options:["Tag Library Descriptor","Template Layout Directive","Tag Level Directive","Template Library Document"], correct:0, difficulty:"hard"},
+        { id:24, text:"Which scope is shared across entire application?", options:["session","config","application","context"], correct:2, difficulty:"hard"},
+        { id:25, text:"What is the result of multiple include directives?", options:["Run-time merge","Compile-time merge","Style merge","Client-side merge"], correct:1, difficulty:"hard"},
+        { id:26, text:"EL implicit object for session:", options:["session","sessionScope","userSession","contextSession"], correct:1, difficulty:"hard"},
+        { id:27, text:"Default buffer size in JSP:", options:["4 KB","8 KB","12 KB","16 KB"], correct:1, difficulty:"hard"},
+        { id:28, text:"Which returns the writer object?", options:["out","writer","os","buffer"], correct:0, difficulty:"hard"},
+        { id:29, text:"Which tag handles exceptions?", options:["<jsp:handler>","<jsp:errorPage>","<jsp:exception>","<jsp:catch>"], correct:3, difficulty:"hard"},
+        { id:30, text:"Which directive sets an error page?", options:["<%@ include %>","<%@ page errorPage= %>","<error>","<jsp:error>"], correct:1, difficulty:"hard"}
+    ];
+}
+function generateDSQuestions() {
+    return [
+        // EASY (1–10)
+        { id:1, text:"Which data structure uses FIFO?", options:["Stack","Queue","Tree","Graph"], correct:1, difficulty:"easy"},
+        { id:2, text:"Which uses LIFO?", options:["Queue","Array","Stack","Heap"], correct:2, difficulty:"easy"},
+        { id:3, text:"Binary tree has max how many children?", options:["1","2","3","4"], correct:1, difficulty:"easy"},
+        { id:4, text:"Which search is faster on sorted array?", options:["Linear","Binary","DFS","BFS"], correct:1, difficulty:"easy"},
+        { id:5, text:"Which is dynamic in size?", options:["Array","Linked List","Tuple","Record"], correct:1, difficulty:"easy"},
+        { id:6, text:"Which stores key-value pairs?", options:["Stack","Queue","HashMap","Tree"], correct:2, difficulty:"easy"},
+        { id:7, text:"Height of single node tree?", options:["0","1","2","Undefined"], correct:0, difficulty:"easy"},
+        { id:8, text:"Which traversal is used for expression evaluation?", options:["Inorder","Postorder","Preorder","Level order"], correct:1, difficulty:"easy"},
+        { id:9, text:"Which DS is used for recursion?", options:["Array","Queue","Stack","Tree"], correct:2, difficulty:"easy"},
+        { id:10, text:"Adjacency list is used in:", options:["Arrays","Trees","Graphs","Stacks"], correct:2, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        { id:11, text:"Time complexity of binary search?", options:["O(n)","O(log n)","O(n²)","O(1)"], correct:1, difficulty:"medium"},
+        { id:12, text:"Which heap is used in priority queue?", options:["Max heap","Min heap","Binary heap","AVL heap"], correct:2, difficulty:"medium"},
+        { id:13, text:"Which sorting is stable?", options:["Quick Sort","Heap Sort","Merge Sort","Selection Sort"], correct:2, difficulty:"medium"},
+        { id:14, text:"What is inorder traversal of BST?", options:["Sorted order","Reverse","Random","Zig-zag"], correct:0, difficulty:"medium"},
+        { id:15, text:"Hashing avoids collisions using:", options:["DFS","Chaining","Sorting","Stacking"], correct:1, difficulty:"medium"},
+        { id:16, text:"Which tree is balanced?", options:["Binary Tree","BST","AVL Tree","Thread Tree"], correct:2, difficulty:"medium"},
+        { id:17, text:"Which graph has no cycles?", options:["Directed","Undirected","Acyclic","Complete"], correct:2, difficulty:"medium"},
+        { id:18, text:"Which DS is used in BFS?", options:["Stack","Queue","Heap","List"], correct:1, difficulty:"medium"},
+        { id:19, text:"Worst-case complexity of Quick Sort?", options:["O(n log n)","O(log n)","O(n²)","O(1)"], correct:2, difficulty:"medium"},
+        { id:20, text:"Which structure allows O(1) insertion at beginning?", options:["Array","LinkedList","Heap","Binary Tree"], correct:1, difficulty:"medium"},
+
+        // HARD (21–30)
+        { id:21, text:"Red-Black Tree ensures:", options:["Even height","Balanced height","Binary search","Duplicate keys"], correct:1, difficulty:"hard"},
+        { id:22, text:"Which algorithm finds MST?", options:["Dijkstra","Floyd","Prim","Bellman-Ford"], correct:2, difficulty:"hard"},
+        { id:23, text:"Which traversal uses stack?", options:["BFS","Level order","DFS","Dijkstra"], correct:2, difficulty:"hard"},
+        { id:24, text:"What is load factor in Hash Table?", options:["Size of key","N/M","M/N","Number of chains"], correct:1, difficulty:"hard"},
+        { id:25, text:"Height of complete binary tree?", options:["O(1)","O(log n)","O(n)","O(n log n)"], correct:1, difficulty:"hard"},
+        { id:26, text:"Which is NP-hard problem?", options:["BST","Sorting","Traveling Salesman Problem","Binary Search"], correct:2, difficulty:"hard"},
+        { id:27, text:"Which is used in topological sorting?", options:["DAG","Cycle graph","Balanced tree","Heap"], correct:0, difficulty:"hard"},
+        { id:28, text:"Which tree is used in DB indexes?", options:["AVL","Binary","B-Tree","Segment Tree"], correct:2, difficulty:"hard"},
+        { id:29, text:"Which DS is used in backtracking?", options:["Queue","Graph","Stack","HashMap"], correct:2, difficulty:"hard"},
+        { id:30, text:"Which algorithm is used for shortest path?", options:["Kruskal","Dijkstra","DFS","BFS"], correct:1, difficulty:"hard"}
+    ];
+}
+function generateReactQuestions() {
+    return [
+        // EASY (1–10)
+        {id:1, text:"React is a ______ library.", options:["Backend","Frontend","Database","Security"], correct:1, difficulty:"easy"},
+        {id:2, text:"React was developed by:", options:["Google","Microsoft","Facebook","Amazon"], correct:2, difficulty:"easy"},
+        {id:3, text:"JSX stands for:", options:["Java Syntax Extension","JavaScript XML","JavaScript Extension","JSON XML"], correct:1, difficulty:"easy"},
+        {id:4, text:"Which hook is used for state?", options:["useRef","useEffect","useState","useContext"], correct:2, difficulty:"easy"},
+        {id:5, text:"React components must return:", options:["Object","Array","HTML/JSX","JSON"], correct:2, difficulty:"easy"},
+        {id:6, text:"Virtual DOM improves ______.", options:["Security","Performance","Memory","Database"], correct:1, difficulty:"easy"},
+        {id:7, text:"Which is a type of component?", options:["Method Component","Class Component","Task Component","Page Component"], correct:1, difficulty:"easy"},
+        {id:8, text:"Props are:", options:["Mutable","Immutable","Optional","Private"], correct:1, difficulty:"easy"},
+        {id:9, text:"React Router is used for:", options:["Styling","Navigation","Testing","Database"], correct:1, difficulty:"easy"},
+        {id:10,text:"Which command creates a React app?", options:["react-start","npm create react","npx create-react-app","npm react"], correct:2, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        {id:11, text:"Which hook runs after every render?", options:["useState","useMemo","useEffect","useCallback"], correct:2, difficulty:"medium"},
+        {id:12, text:"Context API is used to avoid:", options:["State","Props drilling","Rendering","Hooks"], correct:1, difficulty:"medium"},
+        {id:13, text:"useRef is used to:", options:["Store JSX","Store persistent values","Store props","Store effects"], correct:1, difficulty:"medium"},
+        {id:14, text:"Keys in lists must be:", options:["Unique","Sorted","Strings only","Numbers only"], correct:0, difficulty:"medium"},
+        {id:15, text:"Pure components prevent:", options:["Hooks","API calls","Re-renders","Routing"], correct:2, difficulty:"medium"},
+        {id:16, text:"Which manages side-effects?", options:["useState","useMemo","useEffect","useLayout"], correct:2, difficulty:"medium"},
+        {id:17, text:"Which hook memoizes values?", options:["useCallback","useEffect","useMemo","useState"], correct:2, difficulty:"medium"},
+        {id:18, text:"Which hook returns a memoized callback?", options:["useState","useMemo","useCallback","useRef"], correct:2, difficulty:"medium"},
+        {id:19, text:"Error boundaries are written using:", options:["Functional Components","Hooks","Class Components","Nested JSX"], correct:2, difficulty:"medium"},
+        {id:20, text:"React StrictMode detects:", options:["Performance issues","Side-effect issues","JS errors","API failures"], correct:1, difficulty:"medium"},
+
+        // HARD (21–30)
+        {id:21, text:"Reconciliation algorithm uses:", options:["DFS","BFS","Diffing","Selection"], correct:2, difficulty:"hard"},
+        {id:22, text:"Fiber architecture improves:", options:["Security","Error handling","Scheduling","Routing"], correct:2, difficulty:"hard"},
+        {id:23, text:"Suspense is used for:", options:["Error handling","Lazy loading","Forms","HTTP"], correct:1, difficulty:"hard"},
+        {id:24, text:"Which hook runs before paint?", options:["useEffect","useLayoutEffect","useMemo","useCallback"], correct:1, difficulty:"hard"},
+        {id:25, text:"React.lazy is used to:", options:["Optimize state","Lazy load components","Create portals","Use refs"], correct:1, difficulty:"hard"},
+        {id:26, text:"Custom hooks must start with:", options:["run","hook","use","do"], correct:2, difficulty:"hard"},
+        {id:27, text:"Portals render children into:", options:["New DOM node","Virtual DOM","Local storage","Redux store"], correct:0, difficulty:"hard"},
+        {id:28, text:"Which manages global state?", options:["Props","Redux","JSX","Effects"], correct:1, difficulty:"hard"},
+        {id:29, text:"Concurrent mode improves:", options:["Layout","Rendering","State","Browser"], correct:1, difficulty:"hard"},
+        {id:30, text:"Memo prevents:", options:["Component mount","Re-render due to same props","API calls","JSX compile"], correct:1, difficulty:"hard"}
+    ];
+}
+function generateNodeQuestions() {
+    return [
+        // EASY (1–10)
+        {id:1, text:"Node.js is:", options:["Frontend", "JavaScript runtime", "Database", "Framework"], correct:1, difficulty:"easy"},
+        {id:2, text:"Node.js runs on:", options:["Browser","Server","Android","Database"], correct:1, difficulty:"easy"},
+        {id:3, text:"Which module handles file system?", options:["http","fs","net","path"], correct:1, difficulty:"easy"},
+        {id:4, text:"Which module creates server?", options:["http","fs","url","os"], correct:0, difficulty:"easy"},
+        {id:5, text:"NPM stands for:", options:["Node Package Manager","Node Project Manager","Network Package Manager","Node Program Manager"], correct:0, difficulty:"easy"},
+        {id:6, text:"Which function reads a file?", options:["fs.file()","fs.read()","fs.readFile()","fs.load()"], correct:2, difficulty:"easy"},
+        {id:7, text:"Node.js uses ______ model.", options:["Blocking","Non-blocking I/O","Threading","Synchronous"], correct:1, difficulty:"easy"},
+        {id:8, text:"package.json stores:", options:["HTML","Project metadata","JSX","Database"], correct:1, difficulty:"easy"},
+        {id:9, text:"Express.js is a ______.", options:["Framework","Library","API","Tool"], correct:0, difficulty:"easy"},
+        {id:10,text:"To install package globally:", options:["npm add","npm install -g","npm start","node install"], correct:1, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        {id:11, text:"Which is used for routing in Express?", options:["app.path","app.go","app.route","app.forward"], correct:2, difficulty:"medium"},
+        {id:12, text:"Middleware has access to:", options:["request","response","next","All of these"], correct:3, difficulty:"medium"},
+        {id:13, text:"Which is used to parse JSON?", options:["express.raw","express.json","express.body","express.read"], correct:1, difficulty:"medium"},
+        {id:14, text:"Cluster module improves:", options:["Debug","Performance","Testing","Routing"], correct:1, difficulty:"medium"},
+        {id:15, text:"Which database works well with Node.js?", options:["MySQL","MongoDB","Oracle","Excel"], correct:1, difficulty:"medium"},
+        {id:16, text:"Event-driven architecture uses:", options:["Listeners","Files","Classes","CSS"], correct:0, difficulty:"medium"},
+        {id:17, text:"process.env stores:", options:["localStorage","Environment variables","Metadata","Headers"], correct:1, difficulty:"medium"},
+        {id:18, text:"JWT is used for:", options:["UI","Authentication","Testing","Validation"], correct:1, difficulty:"medium"},
+        {id:19, text:"Which HTTP method updates data?", options:["GET","POST","PUT","OPTIONS"], correct:2, difficulty:"medium"},
+        {id:20, text:"Which module handles encryption?", options:["crypto","net","http","os"], correct:0, difficulty:"medium"},
+
+        // HARD (21–30)
+        {id:21, text:"Event Loop phases include:", options:["Timers","I/O callbacks","Check","All of these"], correct:3, difficulty:"hard"},
+        {id:22, text:"Which buffer method allocates memory?", options:["Buffer.size","Buffer.create","Buffer.alloc","Buffer.make"], correct:2, difficulty:"hard"},
+        {id:23, text:"To hash a password:", options:["crypto.hash()","bcrypt.hash()","fs.hash()","http.hash()"], correct:1, difficulty:"hard"},
+        {id:24, text:"PM2 is used for:", options:["Logging","Process management","API testing","Unit testing"], correct:1, difficulty:"hard"},
+        {id:25, text:"Which pattern handles async code?", options:["Observer","Promise","Factory","Adapter"], correct:1, difficulty:"hard"},
+        {id:26, text:"Which improves performance?", options:["Blocking I/O","Child processes","Sessions","Cookies"], correct:1, difficulty:"hard"},
+        {id:27, text:"Which is NOT a Node stream type?", options:["Readable","Writable","Filterable","Duplex"], correct:2, difficulty:"hard"},
+        {id:28, text:"Which module compresses response?", options:["stream","compression","zip","gzip"], correct:1, difficulty:"hard"},
+        {id:29, text:"WebSockets enable:", options:["One-way","Two-way communication","File storage","Authentication"], correct:1, difficulty:"hard"},
+        {id:30, text:"Rate limiting prevents:", options:["Caching","DDoS attack","Rendering","Routing"], correct:1, difficulty:"hard"}
+    ];
+}
+function generatePythonQuestions() {
+    return [
+        // EASY (1–10)
+        {id:1, text:"Python was created by:", options:["Rasmus Lerdorf","Guido van Rossum","James Gosling","Dennis Ritchie"], correct:1, difficulty:"easy"},
+        {id:2, text:"Python is:", options:["Compiled","Interpreted","Assembly","Markup"], correct:1, difficulty:"easy"},
+        {id:3, text:"List is:", options:["Mutable","Immutable","Not iterable","Static"], correct:0, difficulty:"easy"},
+        {id:4, text:"Tuple is:", options:["Mutable","Immutable","Dynamic","None"], correct:1, difficulty:"easy"},
+        {id:5, text:"Which prints output?", options:["echo","out","print","printf"], correct:2, difficulty:"easy"},
+        {id:6, text:"Dictionary stores:", options:["Only keys","Key-value pairs","Only values","Lists"], correct:1, difficulty:"easy"},
+        {id:7, text:"Indentation represents:", options:["Block of code","Loop","Class","Error"], correct:0, difficulty:"easy"},
+        {id:8, text:"To read input:", options:["scan()","read()","input()","cin"], correct:2, difficulty:"easy"},
+        {id:9, text:"Range of list index starts at:", options:["1","0","–1","10"], correct:1, difficulty:"easy"},
+        {id:10,text:"len() returns:", options:["Size","Error","Boolean","Type"], correct:0, difficulty:"easy"},
+
+        // MEDIUM (11–20)
+        {id:11, text:"Which is a loop?", options:["while","for","both","none"], correct:2, difficulty:"medium"},
+        {id:12, text:"Set does not allow:", options:["Strings","Duplicates","Integers","Operations"], correct:1, difficulty:"medium"},
+        {id:13, text:"Which is used for exception?", options:["try","throw","catch","final"], correct:0, difficulty:"medium"},
+        {id:14, text:"List comprehension uses:", options:["{}","<>","[]","()"], correct:2, difficulty:"medium"},
+        {id:15, text:"'self' refers to:", options:["Base class","Child class","Current object","Library"], correct:2, difficulty:"medium"},
+        {id:16, text:"Lambda is:", options:["Named function","Anonymous function","Loop","Module"], correct:1, difficulty:"medium"},
+        {id:17, text:"pip is used to:", options:["Run Python","Install packages","Delete files","Compile"], correct:1, difficulty:"medium"},
+        {id:18, text:"Which converts to int?", options:["toInt()","convert()","int()","number()"], correct:2, difficulty:"medium"},
+        {id:19, text:"*args means:", options:["Dictionary","Tuple of arguments","List of args","String"], correct:1, difficulty:"medium"},
+        {id:20, text:"Which module handles JSON?", options:["random","json","math","os"], correct:1, difficulty:"medium"},
+
+        // HARD (21–30)
+        {id:21, text:"GIL in Python refers to:", options:["Global Interpreter Lock","General Iteration Loop","Global Integer List","Generic Input Loader"], correct:0, difficulty:"hard"},
+        {id:22, text:"Decorator is used to:", options:["Modify a function","Delete a function","Copy a function","Rename function"], correct:0, difficulty:"hard"},
+        {id:23, text:"Which module handles multi-threading?", options:["threading","async","math","os"], correct:0, difficulty:"hard"},
+        {id:24, text:"Which class is used to create iterators?", options:["__iter__","__run__","__loop__","__calc__"], correct:0, difficulty:"hard"},
+        {id:25, text:"Shallow copy uses:", options:["copy.copy","copy.deep","clone.shallow","deep.clone"], correct:0, difficulty:"hard"},
+        {id:26, text:"Deep copy uses:", options:["copy.deep","copy.deepcopy","clone","copy"], correct:1, difficulty:"hard"},
+        {id:27, text:"Which operator overloads + ?", options:["__add__","__plus__","__sum__","__join__"], correct:0, difficulty:"hard"},
+        {id:28, text:"Which module handles database SQLite?", options:["sqlite3","sql","database","mysql"], correct:0, difficulty:"hard"},
+        {id:29, text:"'yield' creates:", options:["Class","Generator","Thread","Error"], correct:1, difficulty:"hard"},
+        {id:30, text:"asyncio is used for:", options:["I/O operations","Graphics","UI","Math"], correct:0, difficulty:"hard"}
+    ];
+}
+        // Generate similar for other skills...
+       
+    </script>
+</body>
+</html>
