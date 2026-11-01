@@ -54,6 +54,7 @@ const Chats = () => {
         setError('');
         try {
             console.log('Loading requests for user:', userId);
+            // ✅ FIX: Use the correct endpoint
             const response = await fetch(`${API_URL}/swap-requests/user/${userId}`);
             const result = await response.json();
             
@@ -94,6 +95,8 @@ const Chats = () => {
 
     // Handle accept request
     const handleAcceptRequest = async (request) => {
+        if (!currentUser) return;
+        
         try {
             console.log('Accepting request:', request);
             const response = await fetch(`${API_URL}/swap-requests/${request.id}/status`, {
@@ -111,9 +114,6 @@ const Chats = () => {
             console.log('Accept response:', result);
             
             if (result.success) {
-                // Send welcome message
-                await sendWelcomeMessage(request);
-                
                 // Reload requests
                 loadUserRequests(currentUser.id);
                 alert('Request accepted!');
@@ -126,40 +126,10 @@ const Chats = () => {
         }
     };
 
-    // Send welcome message after acceptance
-    const sendWelcomeMessage = async (request) => {
-        try {
-            const receiverId = request.outgoing ? request.receiverId : request.requesterId;
-            const receiverName = request.outgoing ? request.receiverFullName : request.requesterFullName;
-            const receiverUsername = request.outgoing ? request.receiverUsername : request.requesterUsername;
-            
-            const messageData = {
-                senderId: currentUser.id,
-                senderUsername: currentUser.username || currentUser.userName,
-                senderFullName: currentUser.fullName || currentUser.name,
-                receiverId: receiverId,
-                receiverUsername: receiverUsername,
-                receiverFullName: receiverName,
-                content: "Request accepted! Let's start learning.",
-                swapRequestId: request.id
-            };
-            
-            console.log('Sending welcome message:', messageData);
-            
-            await fetch(`${API_URL}/messages/send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(messageData)
-            });
-        } catch (error) {
-            console.error('Error sending welcome message:', error);
-        }
-    };
-
     // Handle reject request
     const handleRejectRequest = async (request) => {
+        if (!currentUser) return;
+        
         try {
             console.log('Rejecting request:', request);
             const response = await fetch(`${API_URL}/swap-requests/${request.id}/status`, {
@@ -335,7 +305,6 @@ const Chats = () => {
                         setSelectedChat(null);
                     }}
                 >
-                    <i className="fas fa-exchange-alt"></i>
                     Swap Requests
                     {totalRequests > 0 && (
                         <span className="badge">{totalRequests}</span>
@@ -348,7 +317,6 @@ const Chats = () => {
                         setSelectedChat(null);
                     }}
                 >
-                    <i className="fas fa-comments"></i>
                     Messages
                     {acceptedChats.length > 0 && (
                         <span className="badge">{acceptedChats.length}</span>
@@ -460,7 +428,6 @@ const Chats = () => {
                                     <div className="messages-container">
                                         <h2>ACTIVE CHATS ({acceptedChats.length})</h2>
                                         
-                                        {/* Show only ACCEPTED requests in Messages tab */}
                                         {acceptedChats.map(chat => {
                                             const otherUser = chat.outgoing ? {
                                                 name: chat.receiverFullName || chat.receiverUsername,
@@ -505,7 +472,6 @@ const Chats = () => {
                                 )}
                             </>
                         ) : (
-                            /* CHAT VIEW */
                             <div className="chat-view">
                                 <div className="chat-header" style={{display: 'flex', alignItems: 'center', padding: '15px', borderBottom: '1px solid #ddd'}}>
                                     <button className="back-btn" onClick={closeChat} style={{marginRight: '15px'}}>← Back</button>
@@ -530,7 +496,6 @@ const Chats = () => {
                                     {formatDate(selectedChat.createdAt)}
                                 </div>
 
-                                {/* Skill Request Card */}
                                 <div className="skill-request-card" style={{padding: '15px', margin: '15px', background: '#f5f5f5', borderRadius: '8px'}}>
                                     <h3 style={{margin: '0 0 10px 0'}}>Skill Request:</h3>
                                     <p style={{margin: '5px 0'}}>
@@ -543,7 +508,6 @@ const Chats = () => {
                                     </div>
                                 </div>
 
-                                {/* Messages Area */}
                                 <div className="messages-area" style={{height: '300px', overflowY: 'auto', padding: '15px'}}>
                                     {messages.length > 0 ? (
                                         messages.map((msg, index) => (
@@ -577,7 +541,6 @@ const Chats = () => {
                                     )}
                                 </div>
 
-                                {/* Message Input */}
                                 <div className="message-input-area" style={{display: 'flex', padding: '15px', borderTop: '1px solid #ddd'}}>
                                     <input
                                         type="text"

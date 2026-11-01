@@ -6,6 +6,7 @@ import Dashboard1 from "./pages/Dashboard1";   // ✔ correct
 import Profile from "./pages/Profile";
 import Explore from "./pages/Explore";
 import Chats from "./pages/Chats";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
 
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-
+        <Route path="/admin-dashboard" element={<AdminDashboard/>} />
         <Route path="/dashboard1" element={<Dashboard1 />} />  {/* ✔ correct */}
 
         <Route path="/profile" element={<Profile />} />

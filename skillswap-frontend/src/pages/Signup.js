@@ -15,10 +15,10 @@ export default function Signup() {
   
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Clear field error when user types
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
     }
@@ -28,17 +28,14 @@ export default function Signup() {
   const validateForm = () => {
     const newErrors = {};
     
-    // First name validation
     if (!form.firstName.trim()) {
       newErrors.firstName = "First name is required";
     }
     
-    // Last name validation
     if (!form.lastName.trim()) {
       newErrors.lastName = "Last name is required";
     }
     
-    // Email validation
     const emailRegex = /^[A-Za-z0-9+_.-]+@(.+)$/;
     if (!form.email) {
       newErrors.email = "Email is required";
@@ -46,14 +43,12 @@ export default function Signup() {
       newErrors.email = "Invalid email format";
     }
     
-    // Password validation
     if (!form.password) {
       newErrors.password = "Password is required";
     } else if (form.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
     
-    // Confirm password validation
     if (!form.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (form.password !== form.confirmPassword) {
@@ -67,17 +62,35 @@ export default function Signup() {
   const handleSignup = async () => {
     if (!validateForm()) return;
 
+    setIsLoading(true);
+    setServerError("");
+
+    // IMPORTANT: Use 'isBlocked' instead of 'blocked' to match your entity
     const userData = {
-      firstName: form.firstName,
-      lastName: form.lastName,
-      email: form.email,
-      password: form.password
-    };
+  firstName: form.firstName.trim(),
+  lastName: form.lastName.trim(),
+  email: form.email.trim().toLowerCase(),
+  password: form.password,
+  phone: "",
+  branch: "",
+  role: "USER",
+  profileType: "",
+  about: "",
+  skillsToTeach: [],
+  skillsToLearn: [],
+  isBlocked: false,
+  blocked: false  // <--- ADD THIS LINE
+};
+
+    console.log("Sending data:", userData);
 
     try {
       const response = await fetch("http://localhost:8081/api/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify(userData)
       });
 
@@ -87,17 +100,25 @@ export default function Signup() {
         localStorage.setItem("user", JSON.stringify(data));
         navigate("/Dashboard1");
       } else {
-        // Handle validation errors from backend
         if (data.email) {
           setErrors({ email: data.email });
         } else if (data.password) {
           setErrors({ password: data.password });
+        } else if (data.firstName) {
+          setErrors({ firstName: data.firstName });
+        } else if (data.lastName) {
+          setErrors({ lastName: data.lastName });
+        } else if (data.error) {
+          setServerError(data.error);
         } else {
-          setServerError(data.error || "Signup failed. Please try again.");
+          setServerError("Signup failed. Please try again.");
         }
       }
     } catch (error) {
-      setServerError("Server error. Please try again later.");
+      console.error("Fetch error:", error);
+      setServerError("Cannot connect to server. Please check if backend is running.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,7 +128,7 @@ export default function Signup() {
         <h2>Create Account</h2>
 
         {serverError && (
-          <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>
+          <div className="error-message" style={{color: 'red', marginBottom: '10px', padding: '10px', backgroundColor: '#ffeeee', borderRadius: '4px'}}>
             {serverError}
           </div>
         )}
@@ -119,8 +140,9 @@ export default function Signup() {
           value={form.firstName}
           onChange={handleChange}
           className={errors.firstName ? 'input-error' : ''}
+          disabled={isLoading}
         />
-        {errors.firstName && <small style={{color: 'red'}}>{errors.firstName}</small>}
+        {errors.firstName && <small style={{color: 'red', display: 'block', marginBottom: '5px'}}>{errors.firstName}</small>}
 
         <input 
           type="text" 
@@ -129,8 +151,9 @@ export default function Signup() {
           value={form.lastName}
           onChange={handleChange}
           className={errors.lastName ? 'input-error' : ''}
+          disabled={isLoading}
         />
-        {errors.lastName && <small style={{color: 'red'}}>{errors.lastName}</small>}
+        {errors.lastName && <small style={{color: 'red', display: 'block', marginBottom: '5px'}}>{errors.lastName}</small>}
 
         <input 
           type="email" 
@@ -139,8 +162,9 @@ export default function Signup() {
           value={form.email}
           onChange={handleChange}
           className={errors.email ? 'input-error' : ''}
+          disabled={isLoading}
         />
-        {errors.email && <small style={{color: 'red'}}>{errors.email}</small>}
+        {errors.email && <small style={{color: 'red', display: 'block', marginBottom: '5px'}}>{errors.email}</small>}
 
         <input 
           type="password" 
@@ -149,8 +173,9 @@ export default function Signup() {
           value={form.password}
           onChange={handleChange}
           className={errors.password ? 'input-error' : ''}
+          disabled={isLoading}
         />
-        {errors.password && <small style={{color: 'red'}}>{errors.password}</small>}
+        {errors.password && <small style={{color: 'red', display: 'block', marginBottom: '5px'}}>{errors.password}</small>}
 
         <input 
           type="password" 
@@ -159,11 +184,17 @@ export default function Signup() {
           value={form.confirmPassword}
           onChange={handleChange}
           className={errors.confirmPassword ? 'input-error' : ''}
+          disabled={isLoading}
         />
-        {errors.confirmPassword && <small style={{color: 'red'}}>{errors.confirmPassword}</small>}
+        {errors.confirmPassword && <small style={{color: 'red', display: 'block', marginBottom: '5px'}}>{errors.confirmPassword}</small>}
 
-        <button className="submit-btn" onClick={handleSignup}>
-          Sign Up
+        <button 
+          className="submit-btn" 
+          onClick={handleSignup}
+          disabled={isLoading}
+          style={{opacity: isLoading ? 0.6 : 1, cursor: isLoading ? 'not-allowed' : 'pointer'}}
+        >
+          {isLoading ? "Creating Account..." : "Sign Up"}
         </button>
 
         <p>
