@@ -38,7 +38,7 @@ Instead of depending only on traditional learning methods, students can share th
 - REST APIs
 
 **Database**
-- [Add your database name]
+- MySQL
 
 **Tools**
 - Visual Studio Code
